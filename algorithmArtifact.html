@@ -12,11 +12,353 @@
 <p>
 <a href="https://repl.it/@Fenrys/HashTableCapstone#main.cpp">https://repl.it/@Fenrys/HashTableCapstone#main.cpp</a>
 </p>
+<pre>
+#include <algorithm>
+#include <climits>
+#include <iostream>
+#include <string> // atoi
+#include <time.h>
+
+#include "CSVparser.hpp"
+
+using namespace std;
+
+// Global definitions visible to all methods and classes
+
+const unsigned int DEFAULT_SIZE = 179;
+
+// forward declarations
+double strToDouble(string str, char ch);
+
+// define a structure to hold bid information
+struct Bid {
+    string bidId; // unique identifier
+    string title;
+    string fund;
+    double amount;
+    Bid() {
+        amount = 0.0;
+    }
+};
+
+// Hash Table class definition
+class HashTable {
+
+private:
+    // defines structure to hold bids
+	struct Node {
+		Bid _bid;
+		unsigned _key;
+		Node* next;
+
+    //initializer
+		Node() {
+			_key = UINT_MAX;
+			next = nullptr;
+		}
+
+		//initializer with a bid
+		Node(Bid bid) : Node() {
+			_bid = bid;
+		}
+
+		//initializer with a bid and key
+		Node(unsigned key, Bid bid) : Node() {
+			_bid = bid;
+			_key = key;
+		}
+
+
+
+	};
+
+	vector<Node> nodes;
+
+	unsigned hashTblSize = 550;
+
+
+    unsigned int hash(int key);
+
+public:
+    HashTable();
+    virtual ~HashTable();
+    void Insert(Bid bid);
+    void PrintAll();
+    void Remove(string bidId);
+    Bid Search(string bidId);
+    Bid SearchByTitle(string title);
+};
+
+// Default constructor
+HashTable::HashTable() {
+    // initializes the structures used to hold bids
+	nodes.resize(hashTblSize);
+}
+// Destructor
+HashTable::~HashTable() {
+    // logic to free storage when class is destroyed
+	nodes.erase(nodes.begin());
+}
+
+/**
+ * Calculate the hash value of a given key.
+ * Note that key is specifically defined as
+ * unsigned int to prevent undefined results
+ * of a negative list index.
+ */
+unsigned int HashTable::hash(int key) {
+    //logic to calculate a hash value
+	return key % hashTblSize;
+}
+
+//Insert a bid
+void HashTable::Insert(Bid bid) {
+    // logic to insert a bid
+	int key = hash(atoi(bid.bidId.c_str()));
+
+	// Get the node using key
+	Node* oldNode = &(nodes.at(key));
+
+	if(oldNode != nullptr) {
+		// Node found
+		if (oldNode->_key == UINT_MAX) {
+			oldNode->_key = key;
+			oldNode->_bid = bid;
+			oldNode->next = nullptr;
+		} else {
+			// Do the hash chaining
+			while(true) {
+				if(oldNode->next == nullptr) {
+					break;
+				}
+				oldNode = oldNode->next;
+			}
+			oldNode->next = new Node(key, bid);
+		}
+
+	} else {
+		Node* newNode = new Node(key,bid);
+		nodes.insert(nodes.begin() + key, *newNode);
+	}
+}
+
+//Print all bids
+void HashTable::PrintAll() {
+    // logic to print all bids
+	for (auto nodeSearch = nodes.begin(); nodeSearch != nodes.end(); ++nodeSearch) {
+	//Set the conditional if not UINT_MAX and output the key and bid data:
+		if (nodeSearch->_key != UINT_MAX) {
+			cout << "#" << nodeSearch->_key << " | " << nodeSearch->_bid.bidId << ": " << nodeSearch->_bid.title << " | " << nodeSearch->_bid.amount << " | " << nodeSearch->_bid.fund << endl;
+	    //While node not equal to nullptr, output the node data
+			Node* node = nodeSearch->next;
+			while (node != nullptr) {
+				cout << "    " << node->_key << ": " << node->_bid.bidId << " | " << node->_bid.title << " | " << node->_bid.amount << " | " << node->_bid.fund << endl;
+			node = node->next;
+			}
+		}
+	}
+}
+
+//Remove a bid
+void HashTable::Remove(string bidId) {
+    // logic to remove a bid
+	int keyToRemove = hash(atoi(bidId.c_str()));
+	nodes.erase(nodes.begin() + keyToRemove);
+}
+
+//Search for the specified bidId
+Bid HashTable::Search(string bidId) {
+    // logic to search for and return a bid
+    Bid bid;
+    int key = hash(atoi(bidId.c_str()));
+    Node* node = &(nodes.at(key));
+    // If the node which matches the key is found
+    bool nodeExist = node != nullptr;
+    // If no node exists (fail fast condition)
+    if(!nodeExist || node->_key == UINT_MAX) {
+    	return bid;
+    }
+    bool keyNotMax = node->_key != UINT_MAX;
+    bool isSameAsNodeBeingSearched = node->_bid.bidId.compare(bidId) == 0;
+    if (nodeExist && keyNotMax && isSameAsNodeBeingSearched) {
+    	return node->_bid;
+    }
+    while(true) {
+    	if (node == nullptr) {
+    		break;
+    	}
+    	if (keyNotMax && node->_bid.bidId.compare(bidId) == 0) {
+    		return node->_bid;
+    	}
+    	node = node->next;
+    }
+    return bid;
+}
+
+//Display the bid information to the console
+void displayBid(Bid bid) {
+    cout << bid.bidId << ": " << bid.title << " | " << bid.amount << " | "
+            << bid.fund << endl;
+    return;
+}
+
+//Load a CSV file containing bids into a container
+void loadBids(string csvPath, HashTable* hashTable) {
+    cout << "Loading CSV file " << csvPath << endl;
+
+    // initialize the CSV Parser using the given path
+    csv::Parser file = csv::Parser(csvPath);
+    try {
+        // loop to read rows of a CSV file
+        for (unsigned int i = 0; i < file.rowCount(); i++) {
+
+            // Create a data structure and add to the collection of bids
+            Bid bid;
+            bid.bidId = file[i][1];
+            bid.title = file[i][0];
+            bid.fund = file[i][8];
+            bid.amount = strToDouble(file[i][4], '$');
+
+            // push this bid to the end
+            hashTable->Insert(bid);
+        }
+    } catch (csv::Error &e) {
+        std::cerr << e.what() << std::endl;
+    }
+}
+
+//Convert a string to a double after stripping out unwanted char
+double strToDouble(string str, char ch) {
+    str.erase(remove(str.begin(), str.end(), ch), str.end());
+    return atof(str.c_str());
+}
+
+int main(int argc, char* argv[]) {
+
+    // process command line arguments
+    string csvPath, bidKey;
+    switch (argc) {
+    case 2:
+        csvPath = argv[1];
+        bidKey = "98109";
+        break;
+    case 3:
+        csvPath = argv[1];
+        bidKey = argv[2];
+        break;
+    default:
+        csvPath = "eBid_Monthly_Sales_Dec_2016.csv";
+        bidKey = "98109";
+    }
+
+    // Define a timer variable
+    clock_t ticks;
+
+    // Define a hash table to hold all the bids
+    HashTable* bidTable;
+
+    Bid bid;
+
+    int choice = 0;
+    int choiceTwo = 0;
+    while (choice != 9) {
+        cout << "Menu:" << endl;
+        cout << "  1. Load Bids from CSV File" << endl;
+        cout << "  2. Display All Bids" << endl;
+        cout << "  3. Find Bid by ID" << endl;
+        cout << "  4. Remove Bid by ID" << endl;
+        cout << "  9. Exit" << endl;
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+
+        case 1:
+            bidTable = new HashTable();
+
+            cout << "Which CSV file would you like to load?" << endl;
+            cout << "  1. eBid_Monthly_Sales_Dec_2016.csv" << endl;
+            cout << "  2. eBid_Monthly_Sales.csv" << endl;
+            cout << "  3. Input your own file name." << endl;
+            cin >> choiceTwo;
+
+            if (choiceTwo == 1) {
+              csvPath = "eBid_Monthly_Sales_Dec_2016.csv";
+            }
+            else if (choiceTwo == 2) {
+              csvPath = "eBid_Monthly_Sales.csv";
+            }
+            else if (choiceTwo == 3) {
+              cout << "Input file name: " << endl;
+              cin >> csvPath;
+            }
+            else {
+              cout << "Invalid argument; defaulting to eBid_Monthly_Sales_Dec_2016.csv" << endl;
+              csvPath = "eBid_Monthly_Sales_Dec_2016.csv";
+            }
+
+            // Initialize a timer variable before loading bids
+            ticks = clock();
+
+            // Complete the method call to load the bids
+            loadBids(csvPath, bidTable);
+
+            // Calculate elapsed time and display result
+            ticks = clock() - ticks; // current clock ticks minus starting clock ticks
+            cout << "time: " << ticks << " clock ticks" << endl;
+            cout << "time: " << ticks * 1.0 / CLOCKS_PER_SEC << " seconds" << endl;
+            break;
+
+        case 2:
+            bidTable->PrintAll();
+            break;
+
+        case 3:
+            ticks = clock();
+
+            cout << "Enter bid ID to search: ";
+            cin >> bidKey;
+
+            bid = bidTable->Search(bidKey);
+
+            ticks = clock() - ticks; // current clock ticks minus starting clock ticks
+
+            if (!bid.bidId.empty()) {
+                displayBid(bid);
+            } else {
+                cout << "Bid ID " << bidKey << " not found." << endl;
+            }
+
+            cout << "time: " << ticks << " clock ticks" << endl;
+            cout << "time: " << ticks * 1.0 / CLOCKS_PER_SEC << " seconds" << endl;
+            break;
+
+        case 4:
+
+            cout << "Enter bid ID to remove: ";
+            cin >> bidKey;
+
+            bidTable->Remove(bidKey);
+            break;
+        }
+    }
+
+    cout << "Good bye." << endl;
+
+    return 0;
+}
+</pre>
 <h3>Narrative</h3>
 <p>
 	The project I selected for this artifact was a hash table searcher that I made in C++ as part of my Data Structures and Algorithms class. It was designed to pull bids from an external table and sort them using a tree structure, which could then be searched later using IDs assigned to each bid using a hash table. Each of the program’s functions also had a simple timer attached to it, which tracks the amount of time the search takes to find the correct result. The search terms were hardcoded in this initial version of the program; you could find and delete one bid, and pull data from one file out of the two included. The program was the culmination of several weeks of work in which we learned about and implemented each of the major components of this project one by one, and it ended up being a fairly involved program that demonstrated a number of useful skills that I would use in many of the classes that followed it.
+</p>
+<p>
 	It is for precisely that reason that I selected this program as part of my portfolio; the skills I learned in this class would prove to be foundational and are all things that I wanted to place in a position of importance, as well as continuing to build further on other skills that I’d learned already. Much like my last artifact, this program is capable of accepting data from an external file, which is a useful skill to show off. This project also demonstrated my skills with data structures and algorithms quite effectively. Even more so than the last project, it also demonstrates modularity; portions of this project can very easily be excised and used in other similar projects with full functionality maintained. This is definitely something I want to show off. Finally, as I mentioned in my last narrative, I deliberately chose projects in multiple coding languages to show off my talents with multiple languages; this project is the one for C++. My enhancements for this particular artifact went in several major directions. The first planned route was to tweak my algorithm and attempt to improve on it; however, I made little headway going in this direction. Thankfully, this was actually for a good reason; it seems that I had underestimated my initial work on this project going in, and the algorithm was already remarkably efficient. While I believe I made a few successful tweaks, they shaved microseconds off at most. The greater amount of legwork in enhancements came from two functionality improvements that I made. The first of these was the addition of an input for the search and delete functions that overrode the hardcoded search term; this allowed the user to find a bid of their choice and genuinely make use of the program’s functions. The second was a switch on the loading function that allowed the user to pick between the two files included to load, or input their own if they had a properly formatted file. These two features put together make the program a genuinely useful tool that demonstrates my proficiency with data structures and algorithms quite effectively.
+</p>
+<p>
 	I didn’t quite meet the goals I set in Module One with this enhancement, but I’m not overly bothered by that for the reasons stated above about my failure to significantly improve my algorithm. As far as I can tell, my results with this artifact indicate that my algorithm didn’t actually need heavy improvement; I’m still quite happy with the end result and the enhancements I made in functionality. The program now serves as an effective and useful demonstration of my skills, which is more than I could have ever asked for. I did make some headway on algorithm improvement, even; it’s just not nearly as much as I thought I would, but not for a bad reason.
+</p>
+<p>
 	As noted above, I did have some trouble with this enhancement due to my lack of ability to significantly improve my algorithm. I did a lot of research looking into why that turned out to be the case, and ended up learning a fair bit more than I already did about what makes an algorithm efficient in the first place, and why mine was already so remarkably effective. Having come away from the issue with a lot more knowledge than I started, I’m not particularly upset about my “failure”. Rather, I’m glad that I will be able to make use of this knowledge and algorithm in the future, and even more happy than I already was to showcase it in my portfolio. Overall, I’m quite happy with how this artifact turned out.
 </p>
 </body>
