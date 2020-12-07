@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>Welcome to my Portfolio</h1>
+<div id = "menu" align = "middle" >
+	<a href = "/index.html">Main Page</a> |
+	<a href = "/softwareArtifact.html">Software Design/Engineering</a> |
+	<a href = "/algorithmArtifact.html">Data Structures & Algorithms</a> |
+	<a href = "/databaseArtifact.html">Databases</a> |
+</div>
+<p>
+My name is Max Dagesse, and this webpage hosts my portfolio of work in computer science.
+</p>
+<h3>Artifact: Software Design/Engineering</h3>
+<p>
+<a href="https://repl.it/@Fenrys/AuthenticationSystemCapstone#Main.java">https://repl.it/@Fenrys/AuthenticationSystemCapstone#Main.java</a>
+</p>
+<h3>Narrative</h3>
+<p>
+	The artifact that I chose for this portion of the portfolio is a login authentication system that I made in Java for my Found In App Development class. The concept for the project was that we had to make one of two software programs for use by a zoo; I chose to make the authentication system, which required users to be able to log in using information stored on a separate credentials file and then see information for their role as an employee of the zoo, which would be pulled from another file. There were three roles initially; the veterinarian, zookeeper, and admin roles. The program accepts username and password input, encodes the password using an MD5 hash, then scans the file containing the credentials line by line looking for a match to the login info. If it finds one, it shows the info associated with the login’s role (also on the credentials file). If not, it tells the user that the login was incorrect, then lets them try again unless three failures in a row are on record. If that’s the case, the program exits.
+	I selected this item for use in my portfolio because it demonstrates a number of useful skills that I wanted to place front and center. The first of these is the code language used; I deliberately chose to use three projects in different languages in order to demonstrate my skill in multiple code languages, and this was one of my best projects in Java. It was a fairly advanced program for when I made it, and took very little improvement to become something that I really thought was worth showing off. I also thought that the use of external files as part of the program’s function was something that was worth showing off; in fact, my enhancements to the project are largely centered on this element. These enhancements took the form of two major new additions. One of these was a text-based UI that allowed the user to pick between two major functions of the program. One function was the existing login function; the other was my second major addition, a new branch of the program that allowed the user to create a new login that would be appended to the credentials file. This function called for the user to input the username, password and role for the new account; the program would then encode the password properly, then assemble the information provided by the user into a usable string of login info and append it to the credentials file. Because of where the credentials file was stored, I also had to implement a security check that wouldn’t let the user input the role “credentials”; this would result in the entire credentials file being output by the program on login if it was allowed. If the user tries, they are told that isn’t allowed and made to set a new role.
+	I easily met the goals I set in Module One with this particular project; I wanted to add a “new login” feature and make some security improvements, and that’s exactly what I ended up doing. This was a programming language I was more familiar with than any other, as many of my classes here have centered on it, and what I didn’t already know going in, I had no major issues learning quickly. I would class this particular artifact enhancement as a resounding success.
+	I had very little trouble with this project enhancement overall. My largest issue was with figuring out how to use the new features I would need to add the file output functions in addition to the file input functions, and even that took me only an hour or so to figure out. This process even ended up adding yet another skill that I’m proud to show off as part of my portfolio; the inverse of the FileInputStream feature I already understood, the FileOutputStream. Overall, I would say that this particular enhancement went very smoothly.
+</p>
+</body>
+</html>
