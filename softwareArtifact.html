@@ -15,7 +15,9 @@
 	<a href = "/algorithmArtifact.html">Data Structures & Algorithms</a> |
 	<a href = "/databaseArtifact.html">Databases</a>
 </div>
-<h3>Artifact: Software Design/Engineering</h3>
+<div id = "content" align = "middle" >
+	<h3>Artifact: Software Design/Engineering</h3>
+</div>
 <p>
 <a href="https://repl.it/@Fenrys/AuthenticationSystemCapstone#Main.java">Link to functioning project</a>
 </p>
@@ -187,7 +189,9 @@ public class Main {
     }
 }
 </pre>
-<h3>Narrative</h3>
+<div id = "content2" align = "middle" >
+	<h3>Narrative</h3>
+</div>
 <p>
 	The artifact that I chose for this portion of the portfolio is a login authentication system that I made in Java for my Found In App Development class. The concept for the project was that we had to make one of two software programs for use by a zoo; I chose to make the authentication system, which required users to be able to log in using information stored on a separate credentials file and then see information for their role as an employee of the zoo, which would be pulled from another file. There were three roles initially; the veterinarian, zookeeper, and admin roles. The program accepts username and password input, encodes the password using an MD5 hash, then scans the file containing the credentials line by line looking for a match to the login info. If it finds one, it shows the info associated with the login’s role (also on the credentials file). If not, it tells the user that the login was incorrect, then lets them try again unless three failures in a row are on record. If that’s the case, the program exits.
 </p>
